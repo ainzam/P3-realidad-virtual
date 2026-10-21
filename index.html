@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>P3 · Experiencia 360º | Andrés Bernal Trujillo</title>
+  <script src="https://aframe.io/releases/1.7.0/aframe.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #203039;
+      background: #eef3f5;
+    }
+
+    header {
+      padding: 34px 20px 30px;
+      text-align: center;
+      color: white;
+      background: linear-gradient(135deg, #173d4b, #287b82);
+    }
+
+    .etiqueta {
+      display: inline-block;
+      margin-bottom: 12px;
+      padding: 6px 11px;
+      border: 1px solid rgba(255,255,255,.45);
+      border-radius: 20px;
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    h1 { margin: 0; font-size: clamp(27px, 4vw, 40px); }
+    header p { max-width: 650px; margin: 12px auto 0; line-height: 1.6; color: #e1eff0; }
+
+    main { width: min(1050px, calc(100% - 32px)); margin: 28px auto; }
+
+    .panel {
+      padding: 22px;
+      background: white;
+      border: 1px solid #dce5e8;
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(24, 54, 64, .08);
+    }
+
+    .panel h2 { margin: 0 0 7px; font-size: 21px; }
+    .ayuda { margin: 0 0 18px; color: #5b6c73; line-height: 1.5; }
+
+    .controles { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+
+    button {
+      padding: 11px 17px;
+      border: 1px solid #b9cbd0;
+      border-radius: 8px;
+      color: #23424c;
+      background: #f7fafb;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background .2s, transform .2s;
+    }
+
+    button:hover { background: #e4f1f2; transform: translateY(-1px); }
+    button.activo { color: white; background: #247780; border-color: #247780; }
+    button:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+    button:focus-visible { outline: 3px solid #f0bd58; outline-offset: 2px; }
+
+    .info-escena {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+
+    #estado { margin: 0; color: #41565e; }
+    .indicacion { color: #6a7a80; }
+
+    .visor {
+      overflow: hidden;
+      border-radius: 11px;
+      background: #152b33;
+      border: 1px solid #d0dce0;
+    }
+
+    a-scene {
+      display: block;
+      width: 100%;
+      height: 58vh;
+      min-height: 340px;
+      max-height: 590px;
+    }
+
+    .nota {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .nota article { padding: 16px; background: #f5f9fa; border-radius: 9px; }
+    .nota h3 { margin: 0 0 6px; font-size: 15px; }
+    .nota p { margin: 0; color: #5b6c73; font-size: 14px; line-height: 1.5; }
+
+    footer { padding: 20px; text-align: center; color: #64757b; font-size: 13px; }
+
+    @media (max-width: 600px) {
+      header { padding: 28px 18px; }
+      main { width: calc(100% - 20px); margin: 16px auto; }
+      .panel { padding: 15px; }
+      .controles { display: grid; grid-template-columns: 1fr; }
+      button { width: 100%; }
+      a-scene { height: 52vh; min-height: 290px; }
+      .nota { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <span class="etiqueta">Práctica P3 · Realidad virtual</span>
+    <h1>Explora el mundo en 360º</h1>
+    <p>Una pequeña experiencia inmersiva con una imagen panorámica y un vídeo 360º, creada con A-Frame.</p>
+  </header>
+
+  <main>
+    <section class="panel">
+      <h2>Elige una experiencia</h2>
+      <p class="ayuda">Selecciona una de las dos opciones y arrastra el ratón dentro de la imagen para mirar a tu alrededor.</p>
+
+      <div class="controles">
+        <button id="btnImagen" class="activo" onclick="mostrarImagen()">Ver imagen 360º</button>
+        <button id="btnVideo" onclick="mostrarVideo()">Ver vídeo 360º</button>
+        <button id="botonReproduccion" onclick="reproducirPausarVideo()" disabled>Reproducir vídeo</button>
+      </div>
+
+      <div class="info-escena">
+        <p id="estado" aria-live="polite">Estás viendo la imagen panorámica.</p>
+        <span class="indicacion">Consejo: arrastra para cambiar la vista</span>
+      </div>
+
+      <div class="visor">
+        <a-scene embedded vr-mode-ui="enabled: false" loading-screen="enabled: false">
+          <a-assets>
+            <video id="video360"
+              src="https://cdn.aframe.io/360-video-boilerplate/video/city.mp4"
+              preload="auto" loop muted playsinline webkit-playsinline crossorigin="anonymous"></video>
+          </a-assets>
+
+          <!-- Escena 1: imagen panorámica fija -->
+          <a-sky id="escenaImagen"
+            src="https://cdn.aframe.io/360-image-gallery-boilerplate/img/sechelt.jpg"
+            rotation="0 -90 0"></a-sky>
+
+          <!-- Escena 2: vídeo panorámico -->
+          <a-videosphere id="escenaVideo" src="#video360" visible="false"></a-videosphere>
+
+          <a-camera wasd-controls-enabled="false"></a-camera>
+        </a-scene>
+      </div>
+
+      <div class="nota">
+        <article>
+          <h3>01 · Imagen panorámica</h3>
+          <p>La imagen se proyecta alrededor del usuario mediante el elemento <code>&lt;a-sky&gt;</code>.</p>
+        </article>
+        <article>
+          <h3>02 · Vídeo panorámico</h3>
+          <p>El vídeo se muestra con <code>&lt;a-videosphere&gt;</code>. Puedes iniciarlo o pausarlo con el botón de reproducción.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer>Realizado por Andrés Bernal Trujillo · A-Frame</footer>
+
+  <script>
+    var video = document.getElementById('video360');
+    var botonReproduccion = document.getElementById('botonReproduccion');
+    var estado = document.getElementById('estado');
+    var btnImagen = document.getElementById('btnImagen');
+    var btnVideo = document.getElementById('btnVideo');
+
+    video.addEventListener('error', function () {
+      estado.textContent = 'No se puede cargar el vídeo desde el servidor. Prueba a recargar la página o revisa la conexión.';
+    });
+
+    function actualizarBotones(imagenSeleccionada) {
+      btnImagen.classList.toggle('activo', imagenSeleccionada);
+      btnVideo.classList.toggle('activo', !imagenSeleccionada);
+    }
+
+    function mostrarImagen() {
+      document.getElementById('escenaImagen').setAttribute('visible', true);
+      document.getElementById('escenaVideo').setAttribute('visible', false);
+      video.pause();
+      botonReproduccion.disabled = true;
+      botonReproduccion.textContent = 'Reproducir vídeo';
+      estado.textContent = 'Estás viendo la imagen panorámica.';
+      actualizarBotones(true);
+    }
+
+    function mostrarVideo() {
+      document.getElementById('escenaImagen').setAttribute('visible', false);
+      document.getElementById('escenaVideo').setAttribute('visible', true);
+      botonReproduccion.disabled = false;
+      estado.textContent = 'Vídeo 360º seleccionado. Pulsa «Reproducir vídeo» para iniciarlo.';
+      actualizarBotones(false);
+    }
+
+    function reproducirPausarVideo() {
+      if (video.paused) {
+        video.play().then(function () {
+          botonReproduccion.textContent = 'Pausar vídeo';
+          estado.textContent = 'El vídeo panorámico está reproduciéndose.';
+        }).catch(function () {
+          botonReproduccion.textContent = 'Reproducir vídeo';
+          estado.textContent = 'No se ha podido iniciar el vídeo. Puede que el servidor no responda o que el navegador no pueda cargarlo.';
+        });
+      } else {
+        video.pause();
+        botonReproduccion.textContent = 'Reproducir vídeo';
+        estado.textContent = 'El vídeo está pausado.';
+      }
+    }
+  </script>
+</body>
+</html>
